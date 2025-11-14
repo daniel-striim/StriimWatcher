@@ -1,0 +1,1 @@
+If you are upgrading from a previous instance of StriimWatcher data, the following table alterations add the new columns to our BQ Target database.
