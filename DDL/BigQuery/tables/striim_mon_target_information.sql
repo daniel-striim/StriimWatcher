@@ -25,17 +25,17 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_target_information` 
     acceptedRate FLOAT64 OPTIONS (
         DESCRIPTION="Rate of event acceptance (events per second)."
     ),
-    input INT64 OPTIONS (
-        DESCRIPTION="Total input events to the target. Parsed from comma-separated string (e.g., '4,239' -> 4239)."
+    input_count INT64 OPTIONS (
+        DESCRIPTION="Total input events to the target. Parsed from comma-separated string (e.g., '4,239' -> 4239). Renamed from 'input' to avoid reserved keyword."
     ),
     inputRate FLOAT64 OPTIONS (
         DESCRIPTION="Input event rate (events per second)."
     ),
-    output INT64 OPTIONS (
-        DESCRIPTION="Total output events from the target. Parsed from comma-separated string (e.g., '4,239' -> 4239)."
+    output_count INT64 OPTIONS (
+        DESCRIPTION="Total output events from the target. Parsed from comma-separated string (e.g., '4,239' -> 4239). Renamed from 'output' to avoid reserved keyword."
     ),
-    rate FLOAT64 OPTIONS (
-        DESCRIPTION="General processing rate (events per second)."
+    event_rate FLOAT64 OPTIONS (
+        DESCRIPTION="General processing rate (events per second). Renamed from 'rate' to avoid reserved keyword."
     ),
     targetAcked INT64 OPTIONS (
         DESCRIPTION="Events acknowledged by the target. Parsed from comma-separated string (e.g., '4,180' -> 4180)."
@@ -73,8 +73,8 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_target_information` 
     numServers INT64 OPTIONS (
         DESCRIPTION="Number of servers."
     ),
-    timestamp TIMESTAMP OPTIONS (
-        DESCRIPTION="Monitoring timestamp."
+    montimestamp TIMESTAMP OPTIONS (
+        DESCRIPTION="Monitoring timestamp. Renamed from 'timestamp' to avoid reserved keyword."
     ),
     writeBytes STRING OPTIONS (
         DESCRIPTION="Bytes written per second (e.g., '0MB/s'). Kept as STRING due to units."

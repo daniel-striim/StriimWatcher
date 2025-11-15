@@ -8,11 +8,11 @@ CREATE TABLE mon.striim_mon_source_information (
     batchdate TIMESTAMP,
     appName TEXT,
     componentName TEXT,
-    input BIGINT,
+    input_count BIGINT,
     inputRate BIGINT,
     sourceInput BIGINT,
     sourceRate BIGINT,
-    rate BIGINT,
+    event_rate BIGINT,
     numberOfEventsSeenPerMonitorSnapshotInterval BIGINT,
     cpu DOUBLE PRECISION,
     cpuRatePerNode DOUBLE PRECISION,
@@ -24,7 +24,7 @@ CREATE TABLE mon.striim_mon_source_information (
     sourceFreshness TEXT,
     sourceFreshnessMinutes BIGINT,
     numServers BIGINT,
-    timestamp TIMESTAMP,
+    montimestamp TIMESTAMP,
     jsonoutput TEXT
 );
 

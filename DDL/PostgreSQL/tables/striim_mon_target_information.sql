@@ -11,10 +11,10 @@ CREATE TABLE mon.striim_mon_target_information (
     accepted BIGINT,
     noOfEventsAcceptedPerInterval BIGINT,
     acceptedRate DOUBLE PRECISION,
-    input BIGINT,
+    input_count BIGINT,
     inputRate DOUBLE PRECISION,
-    output BIGINT,
-    rate DOUBLE PRECISION,
+    output_count BIGINT,
+    event_rate DOUBLE PRECISION,
     targetAcked BIGINT,
     targetOutput BIGINT,
     targetRate DOUBLE PRECISION,
@@ -27,7 +27,7 @@ CREATE TABLE mon.striim_mon_target_information (
     latestActivity TIMESTAMP,
     maxLeeFromAllSources TEXT,
     numServers BIGINT,
-    timestamp TIMESTAMP,
+    montimestamp TIMESTAMP,
     writeBytes TEXT,
     jsonoutput TEXT
 );

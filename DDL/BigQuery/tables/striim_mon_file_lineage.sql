@@ -19,8 +19,8 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_file_lineage` (
     fileName STRING OPTIONS (
         DESCRIPTION="The name of the trail file or CDC file being processed (e.g., 'ea000082385'). This is the unique identifier for the file in the lineage."
     ),
-    status STRING OPTIONS (
-        DESCRIPTION="The processing status of the file. Common values: 'PROCESSING' (currently being read), 'COMPLETED' (fully processed). Indicates the current state of file processing."
+    file_status STRING OPTIONS (
+        DESCRIPTION="The processing status of the file. Common values: 'PROCESSING' (currently being read), 'COMPLETED' (fully processed). Indicates the current state of file processing. Renamed from 'status' to avoid reserved keyword."
     ),
     directoryName STRING OPTIONS (
         DESCRIPTION="The full directory path where the file is located (e.g., '/ogg/ogg191/dirdat'). This is the physical location of the trail file on the source system."

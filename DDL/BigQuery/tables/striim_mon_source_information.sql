@@ -16,8 +16,8 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_source_information` 
     componentName STRING OPTIONS (
         DESCRIPTION="The source component name."
     ),
-    input INT64 OPTIONS (
-        DESCRIPTION="Total input events to the source. Parsed from comma-separated string (e.g., '57,253' -> 57253)."
+    input_count INT64 OPTIONS (
+        DESCRIPTION="Total input events to the source. Parsed from comma-separated string (e.g., '57,253' -> 57253). Renamed from 'input' to avoid reserved keyword."
     ),
     inputRate INT64 OPTIONS (
         DESCRIPTION="Input event rate."
@@ -28,8 +28,8 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_source_information` 
     sourceRate INT64 OPTIONS (
         DESCRIPTION="Source event rate."
     ),
-    rate INT64 OPTIONS (
-        DESCRIPTION="General processing rate."
+    event_rate INT64 OPTIONS (
+        DESCRIPTION="General processing rate. Renamed from 'rate' to avoid reserved keyword."
     ),
     numberOfEventsSeenPerMonitorSnapshotInterval INT64 OPTIONS (
         DESCRIPTION="Events seen in the monitoring snapshot interval."
@@ -64,8 +64,8 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_source_information` 
     numServers INT64 OPTIONS (
         DESCRIPTION="Number of servers."
     ),
-    timestamp TIMESTAMP OPTIONS (
-        DESCRIPTION="Monitoring timestamp."
+    montimestamp TIMESTAMP OPTIONS (
+        DESCRIPTION="Monitoring timestamp. Renamed from 'timestamp' to avoid reserved keyword."
     ),
     jsonoutput STRING OPTIONS (
         DESCRIPTION="Full JSON output from the source monitoring command. Only populated if IncludeSourceInformationDetail flag is enabled, otherwise NULL."

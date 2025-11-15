@@ -34,8 +34,8 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_oracle_open_trx` (
     threadNum STRING OPTIONS (
         DESCRIPTION="Oracle thread number."
     ),
-    timestamp TIMESTAMP OPTIONS (
-        DESCRIPTION="Timestamp when the transaction started."
+    montimestamp TIMESTAMP OPTIONS (
+        DESCRIPTION="Timestamp when the transaction started. Renamed from 'timestamp' to avoid reserved keyword."
     ),
     PRIMARY KEY (monopentrxid) NOT ENFORCED
 )

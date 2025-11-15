@@ -9,7 +9,7 @@ CREATE TABLE mon.striim_mon_file_lineage (
     appName TEXT,
     componentName TEXT,
     fileName TEXT,
-    status TEXT,
+    file_status TEXT,
     directoryName TEXT,
     fileCreationTime TIMESTAMP,
     numberOfEvents BIGINT,

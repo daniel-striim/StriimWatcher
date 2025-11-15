@@ -14,6 +14,6 @@ CREATE TABLE mon.striim_mon_oracle_open_trx (
     startscn TEXT,
     rbaBlock TEXT,
     threadNum TEXT,
-    timestamp TIMESTAMP
+    montimestamp TIMESTAMP
 );
 
