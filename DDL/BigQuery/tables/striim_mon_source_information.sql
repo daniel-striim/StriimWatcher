@@ -19,7 +19,7 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_source_information` 
     input_count INT64 OPTIONS (
         DESCRIPTION="Total input events to the source. Parsed from comma-separated string (e.g., '57,253' -> 57253). Renamed from 'input' to avoid reserved keyword."
     ),
-    inputRate INT64 OPTIONS (
+    inputRate FLOAT64 OPTIONS (
         DESCRIPTION="Input event rate."
     ),
     sourceInput INT64 OPTIONS (
