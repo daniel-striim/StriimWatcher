@@ -25,10 +25,10 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_source_information` 
     sourceInput INT64 OPTIONS (
         DESCRIPTION="Source input events. Parsed from comma-separated string (e.g., '57,253' -> 57253)."
     ),
-    sourceRate INT64 OPTIONS (
+    sourceRate FLOAT64 OPTIONS (
         DESCRIPTION="Source event rate."
     ),
-    event_rate INT64 OPTIONS (
+    event_rate FLOAT64 OPTIONS (
         DESCRIPTION="General processing rate. Renamed from 'rate' to avoid reserved keyword."
     ),
     numberOfEventsSeenPerMonitorSnapshotInterval INT64 OPTIONS (
@@ -49,7 +49,7 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_source_information` 
     latestActivity TIMESTAMP OPTIONS (
         DESCRIPTION="Timestamp of the latest activity on the source."
     ),
-    readLag INT64 OPTIONS (
+    readLag FLOAT64 OPTIONS (
         DESCRIPTION="Read lag value - indicates how far behind the source is from the database. Parsed from comma-separated string (e.g., '156,800' -> 156800)."
     ),
     readTimestamp TIMESTAMP OPTIONS (
