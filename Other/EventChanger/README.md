@@ -22,9 +22,8 @@ EventChanger allows you to:
 ## Installation
 
 ### Deploy in Striim
-1. Build the JAR: `mvn clean package`
-2. Upload the JAR to your Striim server
-3. Load in Console: `LOAD 'UploadedFiles/EventChanger-5.0.2.jar';`
+1. Upload the JAR to your Striim server
+2. Load in Console: `LOAD 'UploadedFiles/EventChanger-5.2.0.jar';`
 
 ## Properties
 
