@@ -22,14 +22,15 @@ EventChanger allows you to:
 ## Installation
 
 ### Deploy in Striim
-1. Upload the JAR to your Striim server
-2. Load in Console: `LOAD 'UploadedFiles/EventChanger-5.2.0.jar';`
+1. Build the JAR: `mvn clean package`
+2. Upload the JAR to your Striim server
+3. Load in Console: `LOAD 'UploadedFiles/EventChanger-5.0.2.jar';`
 
 ## Properties
 
 | Property | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `IncludedColumns` | String | Yes | `""` | Comma-separated list of column names to include. Empty string includes all columns. |
+| `IncludedColumns` | String | Yes | `""` | Comma-separated list of column names to include. Use `*`, `%`, or empty string to include all columns. |
 | `SendDDLEvents` | Boolean | No | `true` | Send CREATE TABLE DDL events when new tables are detected. |
 | `SkipUpdatesForUninterestedColumns` | Boolean | No | `false` | Skip UPDATE events if none of the included columns changed. |
 | `MetadataColumnMap` | String | No | `""` | Map metadata fields to new data columns. Format: `ColName=MetadataKey,...` |
@@ -44,11 +45,16 @@ Filters the event to only include specified columns. Modifies both the data payl
 IncludedColumns: 'EmployeeID,FirstName,LastName'
 ```
 
+**To include ALL columns (no filtering):**
+```
+IncludedColumns: '*'    -- or '%' or ''
+```
+
 **Notes:**
 - Column names are case-insensitive
 - A new type is created with only the specified columns
 - Primary key columns are preserved in DDL metadata
-- Leave empty (`""`) to include all columns
+- Use `*`, `%`, or empty string (`""`) to include all columns (no filtering)
 
 ### SendDDLEvents
 
@@ -154,16 +160,18 @@ INPUT FROM SourceStream
 OUTPUT TO FilteredStream;
 ```
 
-### Example with Metadata Columns
+### Example with Metadata Columns (All Columns + Metadata)
 
 ```sql
 CREATE OR REPLACE OPEN PROCESSOR AddOpType USING Global.EventChanger (
-  IncludedColumns: '',
+  IncludedColumns: '*',
   MetadataColumnMap: 'OP_TYPE=OperationName,EVENT_TIME=Timestamp,SRC_TABLE=TableName'
 )
 INPUT FROM SourceStream
 OUTPUT TO EnrichedStream;
 ```
+
+This example includes ALL source columns and appends 3 metadata columns: `OP_TYPE`, `EVENT_TIME`, and `SRC_TABLE`.
 
 ## Output Event Structure
 
