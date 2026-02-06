@@ -22,16 +22,18 @@ EventChanger allows you to:
 ## Installation
 
 ### Deploy in Striim
-1. Upload the JAR to your Striim server
-2. Load in Console: `LOAD 'UploadedFiles/EventChanger-5.2.0.jar';`
+1. Build the JAR: `mvn clean package`
+2. Upload the JAR to your Striim server
+3. Load in Console: `LOAD 'UploadedFiles/EventChanger-5.0.2.jar';`
 
 ## Properties
 
 | Property | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `IncludedColumns` | String | Yes | `""` | Comma-separated list of column names to include. Use `*`, `%`, or empty string to include all columns. |
+| `IncludedColumns` | String | Yes | `""` | Comma-separated columns to include. Supports table-specific filtering with format `schema.table(cols);default_cols`. |
 | `SendDDLEvents` | Boolean | No | `true` | Send CREATE TABLE DDL events when new tables are detected. |
 | `SkipUpdatesForUninterestedColumns` | Boolean | No | `false` | Skip UPDATE events if none of the included columns changed. |
+| `SkipUpdatesForMetadataColumnChanges` | Boolean | No | `true` | Exclude metadata columns from skip comparison. |
 | `MetadataColumnMap` | String | No | `""` | Map metadata fields to new data columns. Format: `ColName=MetadataKey,...` |
 
 ## Property Details
@@ -40,9 +42,28 @@ EventChanger allows you to:
 
 Filters the event to only include specified columns. Modifies both the data payload and DDL metadata.
 
+**Simple format (applies to all tables):**
 ```
 IncludedColumns: 'EmployeeID,FirstName,LastName'
 ```
+
+**Table-specific format:**
+```
+IncludedColumns: 'schema.table1(col1,col2);col3,col4;schema.table2(col5,col6)'
+```
+
+This format allows:
+- **Table-specific rules**: `schema.table1(col1,col2)` - For this table, include `col1`, `col2`
+- **Default columns**: `col3,col4` - Included for ALL tables (additive with table-specific rules)
+- Semicolons (`;`) separate segments
+
+**Example:**
+```
+IncludedColumns: 'dbo.customers(id,name,email);created_at,updated_at;dbo.orders(id,customer_id,total)'
+```
+- `dbo.customers` → includes: `id, name, email, created_at, updated_at`
+- `dbo.orders` → includes: `id, customer_id, total, created_at, updated_at`
+- Other tables → includes: `created_at, updated_at`
 
 **To include ALL columns (no filtering):**
 ```
@@ -53,7 +74,7 @@ IncludedColumns: '*'    -- or '%' or ''
 - Column names are case-insensitive
 - A new type is created with only the specified columns
 - Primary key columns are preserved in DDL metadata
-- Use `*`, `%`, or empty string (`""`) to include all columns (no filtering)
+- Default columns are ALWAYS included (additive with table-specific columns)
 
 ### SendDDLEvents
 
@@ -80,6 +101,20 @@ SkipUpdatesForUninterestedColumns: true
 - Only applies to UPDATE operations
 - Compares `data` (after) and `before` arrays to detect changes
 - Reduces unnecessary updates when source has frequently updated columns you don't need
+
+### SkipUpdatesForMetadataColumnChanges
+
+Controls whether metadata columns (added via `MetadataColumnMap`) are included in the skip comparison when `SkipUpdatesForUninterestedColumns` is enabled.
+
+```
+SkipUpdatesForMetadataColumnChanges: true
+```
+
+**Notes:**
+- Default: `true` (metadata columns are excluded from skip comparison)
+- When `true`: Only original data columns are compared; metadata columns are ignored
+- When `false`: Metadata columns are included in comparison (effectively disables skip when metadata columns exist, since metadata column values in `before` are always null)
+- Only relevant when both `SkipUpdatesForUninterestedColumns: true` and `MetadataColumnMap` is configured
 
 ### MetadataColumnMap
 
