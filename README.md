@@ -11,8 +11,8 @@ It is designed to feed a monitoring data warehouse (BigQuery, PostgreSQL, Snowfl
 | JAR | Striim Version | Notes |
 |---|---|---|
 | `StriimWatcher-5-4.jar` | **5.4.x** (latest) | Direct in-process API — no HTTP calls to Tungsten. Classloader-safe refactor, atomic ID generation, byte-offset log tracking. |
-| `Striim5.2_JAR/StriimWatcher-5.2.5.jar` | 5.2.x | Source/Target information tables, checkpoint history, Oracle open transaction table, file lineage, system configuration tracking, log watcher (debug + command logs), autoheal monitoring apps. See [5.2.5 release notes](5.2.5-release-notes.md). |
-| `Striim5.0_JAR/StriimWatcher-5.0.5.jar` | 5.0.x | Initial release. Core app monitoring, LEE, table comparison, and log watcher. |
+| `Striim5.2_JAR/StriimWatcher-5.2.6.jar` | 5.2.x | Source/Target information tables, checkpoint history, Oracle open transaction table, file lineage, system configuration tracking, log watcher (debug + command logs), autoheal monitoring apps. See [5.2.5 release notes](5.2.5-release-notes.md). PDF documentation: [StriimWatcher-5.2.5.pdf](StriimWatcher-5.2.5.pdf). |
+| `Striim5.0_JAR/StriimWatcher-5.0.6.jar` | 5.0.x | Core app monitoring, LEE, table comparison, and log watcher. |
 
 > Always use the JAR that matches your Striim platform major.minor version.
 
