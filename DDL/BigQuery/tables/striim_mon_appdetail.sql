@@ -28,6 +28,9 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_appdetail` (
     isBackpressured BOOL OPTIONS (
         DESCRIPTION="Boolean: indicates if the app is backpressured."
     ),
+    backpressuredComponents STRING OPTIONS (
+        DESCRIPTION="Comma-separated list of backpressured stream or component names when the app is backpressured. Null if no backpressure detected."
+    ),
     isRecoveryEnabled BOOL OPTIONS (
         DESCRIPTION="Boolean: indicates if recovery is enabled."
     ),

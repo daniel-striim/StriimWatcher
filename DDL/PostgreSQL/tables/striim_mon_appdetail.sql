@@ -9,6 +9,7 @@ CREATE TABLE mon.striim_mon_appdetail (
     totalInput BIGINT,
     totalOutput BIGINT,
     isBackpressured BOOLEAN,
+    backpressuredcomponents TEXT,
     isRecoveryEnabled BOOLEAN,
     recoverySetting TEXT,
     checkpointStatus TEXT,
