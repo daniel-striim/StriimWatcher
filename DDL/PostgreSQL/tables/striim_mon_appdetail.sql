@@ -9,7 +9,6 @@ CREATE TABLE mon.striim_mon_appdetail (
     totalInput BIGINT,
     totalOutput BIGINT,
     isBackpressured BOOLEAN,
-    backpressuredcomponents TEXT,
     isRecoveryEnabled BOOLEAN,
     recoverySetting TEXT,
     checkpointStatus TEXT,
@@ -18,6 +17,7 @@ CREATE TABLE mon.striim_mon_appdetail (
     deploymentOn TEXT,
     deploymentIn TEXT,
     appCreatedDate TIMESTAMP,
-    latestActivity TIMESTAMP
+    latestActivity TIMESTAMP,
+    backpressuredcomponents TEXT
 );
 

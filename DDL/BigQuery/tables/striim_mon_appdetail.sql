@@ -28,9 +28,6 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_appdetail` (
     isBackpressured BOOL OPTIONS (
         DESCRIPTION="Boolean: indicates if the app is backpressured."
     ),
-    backpressuredComponents STRING OPTIONS (
-        DESCRIPTION="Comma-separated list of backpressured stream or component names when the app is backpressured. Null if no backpressure detected."
-    ),
     isRecoveryEnabled BOOL OPTIONS (
         DESCRIPTION="Boolean: indicates if recovery is enabled."
     ),
@@ -57,6 +54,9 @@ CREATE OR REPLACE TABLE `striim_watcher_metadata.striim_mon_appdetail` (
     ),
     latestActivity TIMESTAMP OPTIONS (
         DESCRIPTION="The datetime of the latest activity the app has seen."
+    ),
+    backpressuredComponents STRING OPTIONS (
+        DESCRIPTION="Comma-separated list of backpressured stream or component names when the app is backpressured. Null if no backpressure detected."
     ),
     PRIMARY KEY (monid) NOT ENFORCED
 )
