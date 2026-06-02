@@ -17,7 +17,7 @@ CREATE TABLE mon.striim_mon_appdetail (
     deploymentOn TEXT,
     deploymentIn TEXT,
     appCreatedDate TIMESTAMP,
-    latestActivity TIMESTAMP,
-    backpressuredcomponents TEXT
+    latestActivity TIMESTAMP
+    -- ,backpressuredcomponents TEXT
 );
 
