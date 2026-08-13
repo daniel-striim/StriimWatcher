@@ -53,7 +53,7 @@ In testing, StriimWatcher has been optimized to use minimal resources with defau
 1. **Download** the StriimWatcher jar that matches your Striim version from Field Engineering.
 2. **If StriimWatcher is already loaded**, check `list libraries;` in the console. If it's listed, unload the existing version first — referencing the exact jar filename shown, e.g. `UNLOAD OPEN PROCESSOR 'UploadedFiles/StriimWatcher-5.2.4.jar';`. The jar must still exist in `UploadedFiles/` for the unload to succeed, so don't delete it before unloading.
 3. **Upload the new jar** through the Striim UI's Files page (under "Manage Striim"). Do not place the jar directly on the Striim server's filesystem, the `lib` directory, or the `modules` directory — doing so can cause file-permission issues and make it harder to unload or replace later.
-4. **Load it**: `LOAD OPEN PROCESSOR 'UploadedFiles/StriimWatcherV4-5.4.jar';`, then confirm with `list libraries;`.
+4. **Load it**: `LOAD OPEN PROCESSOR 'UploadedFiles/StriimWatcherV4A-5.4.jar';`, then confirm with `list libraries;`.
 5. If "StriimWatcher" doesn't show up yet when you search for it as a Source in the Flow Designer, refresh your browser and try again.
 
 ---
@@ -88,7 +88,7 @@ change — most sites set the collection interval and leave the rest alone.
 | Start On — `StartOn` | Date and time for the first snapshot. The default value is a special placeholder that means "start immediately" — leave it as-is unless you genuinely need a delayed start. | Date and time | see the description | `2020-12-31T08:00` | `2023-11-10T1:20:00` |
 | End On — `EndOn` | Optional stop time — after this date and time no further snapshots are taken. Leave blank to run indefinitely (this is the normal case). | Date and time | see the description | `` (no end) | *(leave blank)* |
 | Preserve Position — `PreserveStriimWatcherPosition` | Remember cumulative counts and log-file positions across restarts so delta-per-interval calculations and log reading stay accurate. **Note:** this only survives a restart on the same Striim node — it does not currently survive an application failover to a different node in a cluster. | True/false | `true` or `false` | `false` | `false` |
-| App Name Filter — `AppNameFilter` | Optional comma-separated list of application names (or name patterns) to monitor in depth. When set, only matching applications get per-application detail, source/target counts, and related metrics — on servers with many applications this is the single most effective way to reduce StriimWatcher's resource usage. Leave blank to monitor everything. Matching ignores case, each entry may be a regular expression, and an entry that isn't valid as one is matched as a literal name instead of failing the deploy. | Text | comma-separated names or patterns | `` (all apps) | `admin.OrdersCDC, Sales.*` |
+| App Name Filter — `AppNameFilter` | Optional comma-separated list of application names (or name patterns) to monitor in depth. When set, only matching applications get per-application detail, source/target counts, checkpoint history, and related metrics — on servers with many applications this is the single most effective way to reduce StriimWatcher's resource usage. Leave blank to monitor everything. Matching ignores case, each entry may be a regular expression, and an entry that isn't valid as one is matched as a literal name instead of failing the deploy. | Text | comma-separated names or patterns | `` (all apps) | `admin.OrdersCDC, Sales.*` |
 | Max Run Duration Seconds — `MaxRunDurationSeconds` | Optional safety cap on how long one collection snapshot may run. If a snapshot exceeds this, the remaining collection steps are skipped for that cycle (what was already collected is still delivered) and collection resumes fresh at the next interval. `0` means no cap. | Whole number | a number | `0` (unlimited) | `0` |
 | Command Delay Ms — `CommandDelayMs` | Optional pause (milliseconds) between the internal monitoring commands within one snapshot. Set a small value (e.g. `50`–`200`) to spread the monitoring load on a busy server; `0` runs commands back-to-back. | Whole number | a number | `0` (no delay) | `0` |
 | Section Delay Ms — `SectionDelayMs` | Optional pause (milliseconds) before each collection step within one snapshot. Spreads the snapshot's work so a busy server gets breathing room between steps; `0` adds no pause. When `0`/blank, the Throttle Level preset (if any) applies. | Whole number | a number | `0` (no delay) | `0` |
@@ -135,8 +135,8 @@ Set **CPU Threshold Percent** and you are done; the rest are tuning knobs most s
 | Include App Detail — `IncludeAppDetail` | Capture per-application status (backpressure, recovery, encryption, input/output totals). | True/false | `true` or `false` | `true` | `true` |
 | Include App Describe Detail — `IncludeAppDescribeDetail` | Include recovery mode and encryption status from application metadata. | True/false | `true` or `false` | `true` | `true` |
 | Include App Status Detail — `IncludeAppStatusDetail` | Include which servers the application is deployed on. | True/false | `true` or `false` | `true` | `true` |
-| Include Created App Detail — `IncludeCreatedApplicationDetail` | Also report on applications that exist but are not yet deployed. Not commonly needed. | True/false | `true` or `false` | `false` | `false` |
-| Include Deployed App Detail — `IncludeDeployedApplicationDetail` | Also report on deployed-but-stopped applications. Not commonly needed. | True/false | `true` or `false` | `false` | `false` |
+| Include Created App Detail — `IncludeCreatedApplicationDetail` | Also report on applications that exist but are not yet deployed. Not commonly needed, and it costs real time: these applications have no running sources or targets, so every snapshot still has to interrogate each of their sources and targets one at a time just to read back static settings. Leave off unless you specifically want them. | True/false | `true` or `false` | `false` | `false` |
+| Include Deployed App Detail — `IncludeDeployedApplicationDetail` | Also report on deployed-but-stopped applications. Not commonly needed; same time cost as Include Created App Detail. | True/false | `true` or `false` | `false` | `false` |
 
 ### Metrics and Counts
 
@@ -153,7 +153,7 @@ Set **CPU Threshold Percent** and you are done; the rest are tuning knobs most s
 | Include System Config — `IncludeSystemConfiguration` | Capture Striim system configuration parameters (config files, JVM/OS memory, disk space) and flag any that changed. | True/false | `true` or `false` | `true` | `true` |
 | Include Only Config Changes — `IncludeOnlyNoticedConfChanges` | When on, only emit system-configuration entries where the value changed since last snapshot, instead of every parameter every time. Requires Include System Config to be on. | True/false | `true` or `false` | `false` | `false` |
 | Include System Config Detail — `IncludeSystemConfigurationDetail` | Include full JSON detail for each configuration entry (does not affect *whether* a row appears, only whether the verbose detail column is filled in). Requires Include System Config to be on. | True/false | `true` or `false` | `false` | `false` |
-| Include Checkpoint History — `IncludeCheckpointHistoryDetail` | Capture new checkpoint records (useful for audit, recovery-point analysis, and source-target lag detection). The first run records a starting point silently; only later runs report genuinely new checkpoints. | True/false | `true` or `false` | `false` | `false` |
+| Include Checkpoint History — `IncludeCheckpointHistoryDetail` | Capture new checkpoint records (useful for audit, recovery-point analysis, and source-target lag detection). The first run records a starting point silently; only later runs report genuinely new checkpoints. Covers the same applications as the rest of the snapshot — App Name Filter applies, and not-yet-deployed / deployed-but-stopped applications are included only if you turned those options on. | True/false | `true` or `false` | `false` | `false` |
 | Include Oracle Open Trx — `IncludeOracleOpenTrx` | Capture open Oracle LogMiner transactions (helps diagnose long-running transactions causing lag). Produces nothing for non-Oracle sources. | True/false | `true` or `false` | `false` | `false` |
 | Include File Lineage — `IncludeFileLineage` | Capture file-lineage records for file-based sources and targets (new files, status changes, trail-file generation) — useful for spotting stuck files. | True/false | `true` or `false` | `false` | `false` |
 | Include OJet Metrics — `IncludeOJetMetrics` | Capture Oracle JET memory and SCN metrics for Oracle CDC sources using the OJet reader. Produces nothing for non-OJet sources. | True/false | `true` or `false` | `false` | `false` |
@@ -204,7 +204,7 @@ The following creates a StriimWatcher application that polls every 5 minutes and
 ```sql
 CREATE APPLICATION StriimWatcherTestApp;
 
-CREATE SOURCE StriimWatcherSourceA USING Global.StriimWatcherV4 (
+CREATE SOURCE StriimWatcherSourceA USING Global.StriimWatcherV4A (
   RepeatInSeconds: '300',
   IncludeNodeMonitor: true,
   IncludeNodeCluster: true,
@@ -336,21 +336,21 @@ Run the following in the Striim console:
 
 ```sql
 set loglevel = {
-  com.striim.field.StriimWatcherV4.App: debug,
-  com.striim.field.StriimWatcherV4.Processor: debug
+  com.striim.field.StriimWatcherV4A.App: debug,
+  com.striim.field.StriimWatcherV4A.Processor: debug
 };
 ```
 
 (Most collection-pass detail is on `Processor`. The platform seams
-`com.striim.field.StriimWatcherV4.DefaultConsoleCommandRunner` / `DefaultTypeFactory` /
+`com.striim.field.StriimWatcherV4A.DefaultConsoleCommandRunner` / `DefaultTypeFactory` /
 `DefaultMetadataAccess` can be set to `debug` the same way if a Field Engineer asks.)
 
 Debug output goes to `logs/striim.server.clidebug.log`. Turn it back off once you (or your Field Engineer) have what's needed — debug logging is verbose and isn't meant to be left on indefinitely:
 
 ```sql
 set loglevel = {
-  com.striim.field.StriimWatcherV4.App: info,
-  com.striim.field.StriimWatcherV4.Processor: info
+  com.striim.field.StriimWatcherV4A.App: info,
+  com.striim.field.StriimWatcherV4A.Processor: info
 };
 ```
 
