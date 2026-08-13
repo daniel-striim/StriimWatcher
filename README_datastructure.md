@@ -1,6 +1,6 @@
-# StriimWatcherV2 — Monitoring Table Data Dictionary
+# StriimWatcherV4 — Monitoring Table Data Dictionary
 
-This document catalogs every monitoring table StriimWatcherV2 can produce: what it contains, which setting turns it on, and what you'd use it for. It plays the same role the original Confluence page (*StriimWatcher Monitoring Source OP*) played for earlier versions, but the table and column lists below are **re-derived directly from the current source code**, not carried over from that page — several tables have gained columns since that page was last updated (notably `striim_mon_datawarehouse_detail`, `striim_mon_table_comparison`, and `striim_mon_table_comparison_sli`).
+This document catalogs every monitoring table StriimWatcherV4 can produce: what it contains, which setting turns it on, and what you'd use it for. It plays the same role the original Confluence page (*StriimWatcher Monitoring Source OP*) played for earlier versions, but the table and column lists below are **re-derived directly from the current source code**, not carried over from that page — several tables have gained columns since that page was last updated (notably `striim_mon_datawarehouse_detail`, `striim_mon_table_comparison`, and `striim_mon_table_comparison_sli`).
 
 - For setup instructions and what each *setting* does, see [`README_Customer.md`](README_Customer.md).
 - For the full technical reference (Java field-level mapping, lifecycle, parameters table), see [`README.md`](README.md).
@@ -13,7 +13,7 @@ All tables live in the `mon` namespace (e.g. `mon.striim_mon_appdetail`). Every 
 | `NextRun` | When the next polling cycle is scheduled |
 | `TotalRuns` | How many polling cycles have run so far |
 | `TableName` | The `mon.*` table this event belongs to |
-| `OperationName` | Always `INSERT` — StriimWatcherV2 never updates or deletes rows |
+| `OperationName` | Always `INSERT` — StriimWatcherV4 never updates or deletes rows |
 | `ColumnCount` | Number of data columns in this event |
 | `OPERATION_TS` | Epoch timestamp of the operation |
 | `RelatedAppName` | The monitored application this row is about (when the table is app-specific) |
@@ -40,7 +40,7 @@ One row per poll cycle. This is the anchor/fact table every other table's `batch
 | `lastrun` | DateTime | Start time of the previous cycle |
 | `nextrun` | DateTime | Scheduled start of the next cycle |
 
-**Use cases:** confirming StriimWatcherV2 is actually running, sizing `Repeat In Seconds` against `runtimeDurationMS`, and as the join key for every other table.
+**Use cases:** confirming StriimWatcherV4 is actually running, sizing `Repeat In Seconds` against `runtimeDurationMS`, and as the join key for every other table.
 
 ---
 
@@ -65,7 +65,7 @@ One row per Striim application reported by the platform's node-level monitor.
 
 **Use cases:** application inventory, cluster-wide status overview, quick health check, application discovery.
 
-> **Note:** CPU rate fields throughout StriimWatcherV2 are reported per-core, not as a percentage of total machine capacity — an 8-core system can show up to 800%.
+> **Note:** CPU rate fields throughout StriimWatcherV4 are reported per-core, not as a percentage of total machine capacity — an 8-core system can show up to 800%.
 
 ---
 
@@ -128,7 +128,7 @@ One row per running application (plus created/deployed-but-stopped apps if those
 | `isRecoveryEnabled` | Boolean | Whether recovery/checkpointing is on |
 | `recoverySetting` | String | Recovery setting name |
 | `checkpointStatus` | String | Checkpoint status |
-| `checkpointDetail` | String | Checkpoint detail (currently always `null` — see Notes/Limitations in `README.md`) |
+| `checkpointDetail` | String | Per-source/per-target checkpoint positions as a JSON array string; `null` until the app records its first checkpoint |
 | `isEncryptionEnabled` | Boolean | Whether app encryption is on |
 | `deploymentOn` | String | Node(s) the app is deployed on |
 | `deploymentIn` | String | Deployment group |
@@ -143,7 +143,7 @@ One row per running application (plus created/deployed-but-stopped apps if those
 ### `mon.striim_mon_lee` — Latency End-to-End (LEE)
 **Gated by:** Include LEE
 
-One row per source-target pair with latency data. StriimWatcherV2 excludes itself from this table (no self-referential noise).
+One row per source-target pair with latency data. StriimWatcherV4 excludes itself from this table (no self-referential noise).
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -384,7 +384,7 @@ One row per detected property-level configuration change.
 | `propertyValue` | String | Current property value (`null` for `REMOVED`) |
 | `detectedAt` | DateTime | Timestamp when the change was detected |
 
-**Use cases:** configuration audit trail and change history — who/what changed and when, for compliance or for tracking down unexpected behavior changes. This history is kept in memory only and does not survive a StriimWatcherV2 restart.
+**Use cases:** configuration audit trail and change history — who/what changed and when, for compliance or for tracking down unexpected behavior changes. This history is kept in memory only and does not survive a StriimWatcherV4 restart.
 
 ---
 
