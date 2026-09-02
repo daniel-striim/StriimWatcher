@@ -50,7 +50,7 @@ In testing, StriimWatcher has been optimized to use minimal resources with defau
 
 ### Installing and upgrading the module
 
-1. **Download** the StriimWatcher jar that matches your Striim version. Find the latest here: https://storage.googleapis.com/striim-field/StriimWatcherV4D/index.html
+1. **Download** the StriimWatcher jar that matches your Striim version. Please visit the official release bucket for details: https://storage.googleapis.com/striim-field/StriimWatcherV4D/index.html
 2. **If StriimWatcher is already loaded**, check `list libraries;` in the console. If it's listed, unload the existing version first — referencing the exact jar filename shown, e.g. `UNLOAD OPEN PROCESSOR 'UploadedFiles/StriimWatcher-5.2.4.jar';`. The jar must still exist in `UploadedFiles/` for the unload to succeed, so don't delete it before unloading.
 3. **Upload the new jar** through the Striim UI's Files page (under "Manage Striim"). Do not place the jar directly on the Striim server's filesystem, the `lib` directory, or the `modules` directory — doing so can cause file-permission issues and make it harder to unload or replace later.
 4. **Load it**: `LOAD OPEN PROCESSOR 'UploadedFiles/StriimWatcherV4A-5.4.jar';`, then confirm with `list libraries;`.
