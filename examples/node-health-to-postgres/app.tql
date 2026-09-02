@@ -1,0 +1,71 @@
+-- =====================================================================
+-- node-health-to-postgres — the minimal StriimWatcher pipeline.
+-- =====================================================================
+-- Polls the local Striim server for NODE-LEVEL health only (mon; → node applications, cluster
+-- node hardware, and Elasticsearch node metrics) and writes it, plus the always-emitted run
+-- history, into Postgres striim_mon_* tables. Every per-application / metrics section is turned
+-- OFF, so this is the smallest useful monitoring pipeline and the starting point for the library.
+--
+-- This example ships as a SINGLE monitoring app — node health needs no companion pipeline; the
+-- cluster always has at least this watcher application running, so mon; always returns ≥1 row.
+--
+-- PARAMETERISED FORM: the tokens below (namespace / application / operator names and the Postgres
+-- connection) are placeholders, not literals — replace them before running. Load the operator jar
+-- once per cluster (see README_Customer.md), and use the shipped target_postgres_ddl.sql as the
+-- table shapes.
+--
+-- Demo settings (fine to keep, tune for production):
+--   * RepeatInSeconds: 30 — prompt cycles for demos; the module minimum recommendation is 120.
+--   * The mon.* → Postgres table mapping carries a ${TID} prefix so parallel runs never clobber
+--     each other's target tables; the mon-namespace TYPE side is isolated by the per-run ${NS}.
+-- =====================================================================
+
+CREATE NAMESPACE ${NS};
+USE ${NS};
+
+CREATE OR REPLACE APPLICATION ${APP}_watcher;
+
+CREATE OR REPLACE SOURCE NodeWatcher USING Global.${OP_NAME} (
+  RepeatInSeconds: '30',
+  StartOn: '2020-12-31T08:00',
+  -- Node health ON --
+  IncludeNodeMonitor: true,
+  IncludeNodeCluster: true,
+  IncludeNodeES: true,
+  -- Everything else OFF (node-only) --
+  IncludeAppDetail: false,
+  IncludeAppDescribeDetail: false,
+  IncludeAppStatusDetail: false,
+  IncludeLee: false,
+  IncludeTableComparisonDetail: false,
+  IncludeTableComparisonDetail_SinceLastInterval: false,
+  IncludeDataWarehouseDetails: false,
+  IncludeTargetInformation: false,
+  IncludeTargetInformationDetail: false,
+  IncludeSourceInformation: false,
+  IncludeSourceInformationDetail: false,
+  IncludeSystemConfiguration: false,
+  IncludeSystemConfigurationDetail: false,
+  IncludeOnlyNoticedConfChanges: false,
+  IncludeCheckpointHistoryDetail: false,
+  IncludeOracleOpenTrx: false,
+  IncludeFileLineage: false
+)
+OUTPUT TO WatcherStream;
+
+CREATE OR REPLACE TARGET NodeHealthToPg USING Global.DatabaseWriter (
+  DatabaseProviderType: 'Postgres',
+  ConnectionURL: '${PG_URL}',
+  Username: '${PG_TARGET_USER}',
+  Password: '${PG_TARGET_PASSWORD}',
+  Tables: 'mon.striim_mon_node_applications,${PG_TARGET_SCHEMA}.${TID}striim_mon_node_applications;mon.striim_mon_node_cluster,${PG_TARGET_SCHEMA}.${TID}striim_mon_node_cluster;mon.striim_mon_node_elasticsearch,${PG_TARGET_SCHEMA}.${TID}striim_mon_node_elasticsearch;mon.striim_mon_table_runhistory,${PG_TARGET_SCHEMA}.${TID}striim_mon_table_runhistory',
+  BatchPolicy: 'EventCount:100,Interval:5',
+  CommitPolicy: 'EventCount:100,Interval:5',
+  CDDLAction: 'Process'
+)
+INPUT FROM WatcherStream;
+
+END APPLICATION ${APP}_watcher;
+
+DEPLOY APPLICATION ${APP}_watcher;
+START APPLICATION ${APP}_watcher;

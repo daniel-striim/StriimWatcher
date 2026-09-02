@@ -1,4 +1,8 @@
--- Function: insert_alert_updates
+-- Function: insert_alert_updates (DEPRECATED)
+-- Superseded by: views/StriimIntelligentThresholdRecommendations.sql + functions/update_alert_thresholds.sql,
+--   which match what is actually running in the live PROD implementation (view + single set-based
+--   upsert, with a per-appName dedup fix and updated tuning constants). Kept here for
+--   reference/rollback only; do not schedule this function for new deployments.
 -- Purpose: Automatically generate and execute intelligent alert threshold updates
 -- Usage: SELECT * FROM mon.insert_alert_updates();
 -- Returns: Summary of apps updated and their new thresholds

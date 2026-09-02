@@ -33,7 +33,9 @@ BackpressureHistory AS (
     mon.striim_mon_table_runhistory rh
     ON smd.batchdate = rh.batchdate
   WHERE
-    aat.backpressurethresholdminutes IS NOT NULL
+    rh.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND smd.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND aat.backpressurethresholdminutes IS NOT NULL
     AND aat.backpressurethresholdminutes > 0
     AND aat.isenabled IS TRUE
 ),

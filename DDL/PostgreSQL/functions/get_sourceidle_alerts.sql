@@ -39,7 +39,9 @@ SourceIdleHistory AS (
     mon.striim_mon_table_runhistory rh
     ON slw.batchdate = rh.batchdate
   WHERE
-    UPPER(TRIM(slw.log_level)) = 'WARN'
+    rh.batchdate >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+    AND slw.batchdate >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+    AND UPPER(TRIM(slw.log_level)) = 'WARN'
     AND slw.contextbuffertext LIKE 'Source_Idle%'
     AND aat.sourceinactivitythresholdminutes IS NOT NULL
     AND aat.sourceinactivitythresholdminutes > 0

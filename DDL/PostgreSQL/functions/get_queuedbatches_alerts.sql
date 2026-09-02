@@ -33,7 +33,9 @@ QueuedBatchesHistory AS (
     mon.striim_mon_table_runhistory rh
     ON swd.batchdate = rh.batchdate
   WHERE
-    aat.maxqueuedbatchesontarget IS NOT NULL
+    rh.batchdate >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+    AND swd.batchdate >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+    AND aat.maxqueuedbatchesontarget IS NOT NULL
     AND aat.maxqueuedbatchesontarget > 0
     AND aat.isenabled = TRUE
     AND swd.total_batches_queued IS NOT NULL

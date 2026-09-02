@@ -20,10 +20,10 @@ CheckpointHistory AS (
     smd.appName,
     smd.batchdate,
     rh.clusterName,
-    -- Define checkpoint issue condition
-    (smd.isRecoveryEnabled = TRUE AND UPPER(TRIM(smd.checkpointStatus)) != 'PROGRESSING') AS is_checkpoint_issue,
+    -- Define checkpoint issue condition (exclude apps that haven't started running yet)
+    (smd.isRecoveryEnabled = TRUE AND UPPER(TRIM(smd.checkpointStatus)) != 'PROGRESSING' AND smd.appStatus NOT IN ('CREATED', 'DEPLOYED')) AS is_checkpoint_issue,
     aat.checkpointnotprogressingthresholdmin,
-    LAG((smd.isRecoveryEnabled = TRUE AND UPPER(TRIM(smd.checkpointStatus)) != 'PROGRESSING'), 1, NULL)
+    LAG((smd.isRecoveryEnabled = TRUE AND UPPER(TRIM(smd.checkpointStatus)) != 'PROGRESSING' AND smd.appStatus NOT IN ('CREATED', 'DEPLOYED')), 1, NULL)
       OVER (PARTITION BY smd.appName ORDER BY smd.batchdate) as prev_is_checkpoint_issue
   FROM
     mon.striim_mon_appdetail AS smd
@@ -34,7 +34,9 @@ CheckpointHistory AS (
     mon.striim_mon_table_runhistory rh
     ON smd.batchdate = rh.batchdate
   WHERE
-    aat.checkpointnotprogressingthresholdmin IS NOT NULL
+    rh.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND smd.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND aat.checkpointnotprogressingthresholdmin IS NOT NULL
     AND aat.checkpointnotprogressingthresholdmin > 0
     AND aat.isenabled IS TRUE
 ),

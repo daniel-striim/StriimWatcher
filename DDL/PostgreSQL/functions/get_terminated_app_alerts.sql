@@ -33,7 +33,9 @@ AppStatusHistory AS (
     mon.striim_mon_table_runhistory rh
     ON smd.batchdate = rh.batchdate
   WHERE
-    aat.terminatedcheckenabled IS TRUE
+    rh.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND smd.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND aat.terminatedcheckenabled IS TRUE
     AND aat.isenabled IS TRUE
 ),
 
@@ -89,7 +91,8 @@ WHERE
   -- Only evaluate the most recent status for each application
   sg.rn = 1
   -- Only trigger alert if current status is a problem state
-  AND sg.status != 'RUNNING'
+  -- (COMPLETED/STOPPED/CREATED/DEPLOYED are legitimate non-error states, not terminations)
+  AND sg.status IN ('HALT', 'CRASH', 'UNKNOWN')
   -- And duration has met or exceeded the threshold
   AND sd.duration_of_problem_state_minutes >= sd.configured_threshold_minutes;
 $$ LANGUAGE SQL;

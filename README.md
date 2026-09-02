@@ -4,6 +4,9 @@ StriimWatcher is a Striim source component that automatically collects monitorin
 
 > **What kind of component is this?** StriimWatcher is a **Field-Developed component** — built and maintained by Striim's Field Engineering / Customer Success Engineering team, not a core, generally-available product feature. Your Striim Field Engineer is the right point of contact for version compatibility, upgrades, and anything that looks like a bug.
 
+> **Architecture, TQL samples, dashboards, and alert notification examples:** see
+> [`MONITORING_AND_ALERTING_ARCHITECTURE.md`](MONITORING_AND_ALERTING_ARCHITECTURE.md).
+
 ---
 
 ## What It Does

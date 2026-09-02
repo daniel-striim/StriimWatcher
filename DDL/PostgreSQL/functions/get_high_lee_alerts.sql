@@ -35,7 +35,9 @@ LeeHistory AS (
     mon.striim_mon_table_runhistory rh
     ON sml.batchdate = rh.batchdate
   WHERE
-    aat.avgleethresholdminutes IS NOT NULL
+    rh.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND sml.batchdate >= CURRENT_TIMESTAMP - INTERVAL '10 days'
+    AND aat.avgleethresholdminutes IS NOT NULL
     AND aat.avgleethresholdminutes > 0
     AND aat.isenabled IS TRUE
 ),

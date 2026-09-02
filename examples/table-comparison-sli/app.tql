@@ -1,0 +1,90 @@
+-- =====================================================================
+-- table-comparison-sli — cumulative source-vs-target counts + since-last-interval (SLI) deltas.
+-- =====================================================================
+-- Emits mon.striim_mon_table_comparison (cumulative source-vs-target event counts per src/tgt pair)
+-- AND mon.striim_mon_table_comparison_sli (the delta since the previous cycle), scoped to a companion
+-- app via AppNameFilter, plus the always-emitted run history — into Postgres.
+--
+-- SLI requires a PRIOR cycle: the _sli rows only appear from the SECOND polling cycle onward (the
+-- first cycle has no prior interval to diff against). RepeatInSeconds is short and the live test's
+-- timeout is generous so at least two cycles run.
+--
+-- Ships as a PAIR (same shape as app-detail-monitoring):
+--   (1) ${APP}_monitored — a Postgres→Postgres initial load (pre-seeded source → target), giving the
+--       watcher a real src→tgt pair with non-zero comparison counts.
+--   (2) ${APP}_watcher — the StriimWatcherV4D monitoring app this example is about.
+--
+-- PARAMETERISED FORM: the tokens below are placeholders, not literals — replace them before
+-- running, and load the operator jar once per cluster (see README_Customer.md).
+--
+-- Demo settings (fine to keep, tune for production):
+--   * AppNameFilter: '${APP_BARE}_monitored' — deterministic scoping; EMPTY monitors all apps.
+--   * RepeatInSeconds: 20 — short so ≥2 cycles run promptly; module minimum recommendation is 120.
+-- =====================================================================
+
+CREATE NAMESPACE ${NS};
+USE ${NS};
+
+-- (1) DEMO MONITORED PIPELINE — a real src→tgt pair with non-zero counts.
+CREATE OR REPLACE APPLICATION ${APP}_monitored;
+CREATE OR REPLACE SOURCE OrdersLoad USING Global.DatabaseReader (
+  ConnectionURL: '${PG_URL}', Username: '${PG_SOURCE_USER}', Password: '${PG_SOURCE_PASSWORD}',
+  Tables: '${PG_SOURCE_SCHEMA}.${TID}sw_orders'
+) OUTPUT TO OrdersStream;
+CREATE OR REPLACE TARGET OrdersWrite USING Global.DatabaseWriter (
+  DatabaseProviderType: 'Postgres',
+  ConnectionURL: '${PG_URL}', Username: '${PG_TARGET_USER}', Password: '${PG_TARGET_PASSWORD}',
+  Tables: '${PG_SOURCE_SCHEMA}.${TID}sw_orders,${PG_TARGET_SCHEMA}.${TID}sw_orders',
+  BatchPolicy: 'EventCount:100,Interval:1', CommitPolicy: 'EventCount:100,Interval:1'
+) INPUT FROM OrdersStream;
+END APPLICATION ${APP}_monitored;
+
+-- (2) WATCHER — cumulative table comparison + SLI delta, scoped to the demo app.
+CREATE OR REPLACE APPLICATION ${APP}_watcher;
+CREATE OR REPLACE SOURCE TableCompareWatcher USING Global.${OP_NAME} (
+  RepeatInSeconds: '20',
+  StartOn: '2020-12-31T08:00',
+  AppNameFilter: '${APP_BARE}_monitored',   -- demo scoping; EMPTY in production monitors all apps
+  -- Node health OFF --
+  IncludeNodeMonitor: false,
+  IncludeNodeCluster: false,
+  IncludeNodeES: false,
+  -- App detail must be ON: table comparison is built from the per-app mon data --
+  IncludeAppDetail: true,
+  IncludeAppDescribeDetail: false,
+  IncludeAppStatusDetail: false,
+  IncludeLee: false,
+  -- Table comparison + SLI ON --
+  IncludeTableComparisonDetail: true,
+  IncludeTableComparisonDetail_SinceLastInterval: true,
+  -- Everything else OFF --
+  IncludeDataWarehouseDetails: false,
+  IncludeTargetInformation: false,
+  IncludeTargetInformationDetail: false,
+  IncludeSourceInformation: false,
+  IncludeSourceInformationDetail: false,
+  IncludeSystemConfiguration: false,
+  IncludeSystemConfigurationDetail: false,
+  IncludeOnlyNoticedConfChanges: false,
+  IncludeCheckpointHistoryDetail: false,
+  IncludeOracleOpenTrx: false,
+  IncludeFileLineage: false
+)
+OUTPUT TO WatcherStream;
+CREATE OR REPLACE TARGET TableCompareToPg USING Global.DatabaseWriter (
+  DatabaseProviderType: 'Postgres',
+  ConnectionURL: '${PG_URL}',
+  Username: '${PG_TARGET_USER}',
+  Password: '${PG_TARGET_PASSWORD}',
+  Tables: 'mon.striim_mon_table_comparison,${PG_TARGET_SCHEMA}.${TID}striim_mon_table_comparison;mon.striim_mon_table_comparison_sli,${PG_TARGET_SCHEMA}.${TID}striim_mon_table_comparison_sli;mon.striim_mon_table_runhistory,${PG_TARGET_SCHEMA}.${TID}striim_mon_table_runhistory',
+  BatchPolicy: 'EventCount:100,Interval:5',
+  CommitPolicy: 'EventCount:100,Interval:5',
+  CDDLAction: 'Process'
+)
+INPUT FROM WatcherStream;
+END APPLICATION ${APP}_watcher;
+
+DEPLOY APPLICATION ${APP}_monitored;
+START APPLICATION ${APP}_monitored;
+DEPLOY APPLICATION ${APP}_watcher;
+START APPLICATION ${APP}_watcher;

@@ -43,7 +43,9 @@ BatchSizeHistory AS (
     mon.striim_mon_table_runhistory rh
     ON swd.batchdate = rh.batchdate
   WHERE
-    aat.maxbatchsizebytes IS NOT NULL
+    rh.batchdate >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+    AND swd.batchdate >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+    AND aat.maxbatchsizebytes IS NOT NULL
     AND aat.maxbatchsizebytes > 0
     AND aat.isenabled = TRUE
     AND (swd.last_batch_size_bytes IS NOT NULL OR swd.avg_batch_size_bytes IS NOT NULL)

@@ -1,0 +1,89 @@
+-- =====================================================================
+-- app-detail-monitoring — per-application detail, scoped with AppNameFilter (V3).
+-- =====================================================================
+-- Emits mon <app>; per-application detail (status, recovery/checkpoint, deployment, activity) for
+-- ONE named application, plus the always-emitted run history, into Postgres. The V3 AppNameFilter
+-- bounds the (expensive) per-app fan-out to the companion app, so the output is deterministic on a
+-- shared cluster and the watcher does not pay to deep-monitor every app on the node.
+--
+-- This example ships as a PAIR so it runs end-to-end out of the box:
+--   (1) ${APP}_monitored — a demo Postgres→Postgres initial-load pipeline (DatabaseReader over a
+--       pre-seeded source table → DatabaseWriter), giving the watcher a real application to report.
+--       Replace it with your own application(s) in production.
+--   (2) ${APP}_watcher — the StriimWatcherV4D monitoring app this example is about.
+--
+-- PARAMETERISED FORM: the tokens below are placeholders, not literals — replace them before
+-- running, and load the operator jar once per cluster (see README_Customer.md).
+--
+-- Demo settings (fine to keep, tune for production):
+--   * AppNameFilter: '${APP_BARE}_monitored' — scopes the deep per-app treatment to the demo app.
+--     THE headline setting in production is to LEAVE IT EMPTY: deep-monitor every application.
+--   * RepeatInSeconds: 30 — prompt cycles for demos; the module minimum recommendation is 120.
+--   * The companion's Batch/CommitPolicy are 1s so the demo load completes promptly.
+-- =====================================================================
+
+CREATE NAMESPACE ${NS};
+USE ${NS};
+
+-- (1) DEMO MONITORED PIPELINE — a Postgres initial-load the watcher can report on.
+CREATE OR REPLACE APPLICATION ${APP}_monitored;
+CREATE OR REPLACE SOURCE OrdersLoad USING Global.DatabaseReader (
+  ConnectionURL: '${PG_URL}', Username: '${PG_SOURCE_USER}', Password: '${PG_SOURCE_PASSWORD}',
+  Tables: '${PG_SOURCE_SCHEMA}.${TID}sw_orders'
+) OUTPUT TO OrdersStream;
+CREATE OR REPLACE TARGET OrdersWrite USING Global.DatabaseWriter (
+  DatabaseProviderType: 'Postgres',
+  ConnectionURL: '${PG_URL}', Username: '${PG_TARGET_USER}', Password: '${PG_TARGET_PASSWORD}',
+  Tables: '${PG_SOURCE_SCHEMA}.${TID}sw_orders,${PG_TARGET_SCHEMA}.${TID}sw_orders',
+  BatchPolicy: 'EventCount:100,Interval:1', CommitPolicy: 'EventCount:100,Interval:1'
+) INPUT FROM OrdersStream;
+END APPLICATION ${APP}_monitored;
+
+-- (2) WATCHER — per-application detail, scoped to the demo app via AppNameFilter.
+CREATE OR REPLACE APPLICATION ${APP}_watcher;
+CREATE OR REPLACE SOURCE AppWatcher USING Global.${OP_NAME} (
+  RepeatInSeconds: '30',
+  StartOn: '2020-12-31T08:00',
+  AppNameFilter: '${APP_BARE}_monitored',   -- demo scoping; EMPTY in production monitors all apps
+  -- Node health OFF (this example is about per-app detail) --
+  IncludeNodeMonitor: false,
+  IncludeNodeCluster: false,
+  IncludeNodeES: false,
+  -- Per-application detail ON --
+  IncludeAppDetail: true,
+  IncludeAppDescribeDetail: true,
+  IncludeAppStatusDetail: true,
+  -- Other metrics OFF --
+  IncludeLee: false,
+  IncludeTableComparisonDetail: false,
+  IncludeTableComparisonDetail_SinceLastInterval: false,
+  IncludeDataWarehouseDetails: false,
+  IncludeTargetInformation: false,
+  IncludeTargetInformationDetail: false,
+  IncludeSourceInformation: false,
+  IncludeSourceInformationDetail: false,
+  IncludeSystemConfiguration: false,
+  IncludeSystemConfigurationDetail: false,
+  IncludeOnlyNoticedConfChanges: false,
+  IncludeCheckpointHistoryDetail: false,
+  IncludeOracleOpenTrx: false,
+  IncludeFileLineage: false
+)
+OUTPUT TO WatcherStream;
+CREATE OR REPLACE TARGET AppDetailToPg USING Global.DatabaseWriter (
+  DatabaseProviderType: 'Postgres',
+  ConnectionURL: '${PG_URL}',
+  Username: '${PG_TARGET_USER}',
+  Password: '${PG_TARGET_PASSWORD}',
+  Tables: 'mon.striim_mon_appdetail,${PG_TARGET_SCHEMA}.${TID}striim_mon_appdetail;mon.striim_mon_table_runhistory,${PG_TARGET_SCHEMA}.${TID}striim_mon_table_runhistory',
+  BatchPolicy: 'EventCount:100,Interval:5',
+  CommitPolicy: 'EventCount:100,Interval:5',
+  CDDLAction: 'Process'
+)
+INPUT FROM WatcherStream;
+END APPLICATION ${APP}_watcher;
+
+DEPLOY APPLICATION ${APP}_monitored;
+START APPLICATION ${APP}_monitored;
+DEPLOY APPLICATION ${APP}_watcher;
+START APPLICATION ${APP}_watcher;
