@@ -35,7 +35,9 @@ LeeHistory AS (
     `striim_watcher_metadata.striim_mon_table_runhistory` rh
     ON sml.batchdate = rh.batchdate
   WHERE
-    aat.avgLeeThresholdMinutes IS NOT NULL 
+    rh.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 10 DAY)
+    AND sml.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 10 DAY)
+    AND aat.avgLeeThresholdMinutes IS NOT NULL
     AND aat.avgLeeThresholdMinutes > 0 
     AND aat.isEnabled IS TRUE
 ),

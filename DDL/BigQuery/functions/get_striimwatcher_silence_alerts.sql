@@ -31,14 +31,17 @@ LatestClusterRuns AS (
 SELECT
   lcr.clusterName,
   CONCAT('StriimWatcher-', lcr.clusterName) AS entity_name,
-  'System Monitoring' AS deploymentOn,
+  n.nodename AS deploymentOn,
   'STRIIMWATCHER_SILENCE' AS alert_type,
   CURRENT_TIMESTAMP() AS alert_trigger_time,
   lcr.minutes_since_last_run AS duration_of_problem_state_minutes,
-  threshold_minutes AS configured_threshold_minutes
+  IFNULL(threshold_minutes, 60) AS configured_threshold_minutes
 FROM
   LatestClusterRuns lcr
+INNER JOIN
+  `striim_watcher_metadata.striim_mon_node_cluster` n
+  ON lcr.last_run_time = n.batchdate
 WHERE
   -- Only alert if silence duration exceeds the specified threshold
-  lcr.minutes_since_last_run >= threshold_minutes
+  lcr.minutes_since_last_run >= IFNULL(threshold_minutes, 60)
 );

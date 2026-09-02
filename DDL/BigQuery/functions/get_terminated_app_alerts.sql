@@ -33,7 +33,9 @@ AppStatusHistory AS (
     `striim_watcher_metadata.striim_mon_table_runhistory` rh
     ON smd.batchdate = rh.batchdate
   WHERE
-    aat.terminatedCheckEnabled IS TRUE
+    rh.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 10 DAY)
+    AND smd.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 10 DAY)
+    AND aat.terminatedCheckEnabled IS TRUE
     AND aat.isEnabled IS TRUE
 ),
 
@@ -89,7 +91,8 @@ WHERE
   -- Only evaluate the most recent status for each application
   sg.rn = 1
   -- Only trigger alert if current status is a problem state
-  AND sg.status != 'RUNNING'
+  -- (COMPLETED/STOPPED/CREATED/DEPLOYED are legitimate non-error states, not terminations)
+  AND sg.status IN ('HALT', 'CRASH', 'UNKNOWN')
   -- And duration has met or exceeded the threshold
   AND sd.duration_of_problem_state_minutes >= sd.configured_threshold_minutes
 );

@@ -40,8 +40,10 @@ SourceIdleHistory AS (
     `striim_watcher_metadata.striim_mon_table_runhistory` rh
     ON slw.batchdate = rh.batchdate
   WHERE
+    rh.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY)
+    AND slw.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY)
     -- Filter for WARN level logs
-    UPPER(TRIM(slw.log_level)) = 'WARN'
+    AND UPPER(TRIM(slw.log_level)) = 'WARN'
     -- Filter for Source_Idle messages
     AND slw.contextbuffertext LIKE 'Source_Idle%'
     -- Ensure we have a valid threshold configured

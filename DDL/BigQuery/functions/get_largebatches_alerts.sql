@@ -44,7 +44,9 @@ BatchSizeHistory AS (
     `striim_watcher_metadata.striim_mon_table_runhistory` rh
     ON swd.batchdate = rh.batchdate
   WHERE
-    aat.maxBatchSizeBytes IS NOT NULL 
+    rh.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY)
+    AND swd.batchdate >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY)
+    AND aat.maxBatchSizeBytes IS NOT NULL
     AND aat.maxBatchSizeBytes > 0 
     AND aat.isEnabled IS TRUE
     AND (swd.last_batch_size_bytes IS NOT NULL OR swd.avg_batch_size_bytes IS NOT NULL)
