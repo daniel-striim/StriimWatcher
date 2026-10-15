@@ -367,6 +367,32 @@ One row per Oracle source using the OJet reader.
 
 ---
 
+### `mon.striim_mon_ojet_ext_metrics` — Oracle JET (OJet) Extended Metrics
+**Gated by:** Include OJet Extended Metrics — produces no rows for non-OJet sources.
+
+One row per OJet source per batch, combining the reader adapter's direct status and memory rows with
+the matching source's low/high typed checkpoint positions from `StatusDataStore`. Recovery must be
+enabled on the monitored application for the six checkpoint columns. The watcher asks the running
+reader and requires no additional Oracle privileges; agent deployments are supported, and a busy
+reader may leave one pass's status and memory columns empty. Every metric column is stored as text;
+status and memory values retain the adapter's own formatting.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `monojetextid` (PK) | Long | Unique event ID |
+| `batchdate` | DateTime | Cycle start |
+| `appName` / `componentName` | String | Application and source component name |
+| `serverStatus` / `enqueue` / `dequeue` / `captureStatus` / `captureState` / `spillCount` / `progress` / `error` | String | From `SHOW <source> STATUS` |
+| `firstScn` / `startScn` / `appliedScn` / `capturedScn` / `oldestScn` / `filteredScn` / `messagesCaptured` / `messagesEnqueued` / `captureTime` / `ruleTime` / `enqueueTime` / `lcrTime` / `redoWaitTime` / `redoMined` / `restartScn` | String | From `SHOW <source> STATUS details` |
+| `logMinerSession` / `captureSession` / `applySession` / `streamsPool` | String | From `SHOW <source> memory` |
+| `logMinerUsed` / `logMinerMax` / `captureUsed` / `captureAllocated` / `applyUsed` / `applyAllocated` / `streamsUsed` / `streamsAllocated` / `msgsInMem` / `msgsSpilled` / `txnsRollback` / `propagationState` | String | From `SHOW <source> memory details` |
+| `restartPositionCommitScn` / `restartPositionCurrentScn` / `restartPositionRecoveryScn` | String | CommitSCN/CurrentSCN/RecoverySCN from this source's low checkpoint position |
+| `currentPositionCommitScn` / `currentPositionCurrentScn` / `currentPositionRecoveryScn` | String | CommitSCN/CurrentSCN/RecoverySCN from this source's high checkpoint position, or low when high is absent |
+
+**Use cases:** deeper Oracle CDC diagnostics beyond `striim_mon_ojet_metrics` — capture/apply/enqueue state, SCN progress, per-subsystem memory usage, and restart-vs-current checkpoint position, in one row.
+
+---
+
 ### `mon.striim_mon_tql_history` — TQL Change History
 **Gated by:** Include TQL Change Tracking
 
